@@ -1,23 +1,98 @@
 import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.server.UnicastRemoteObject;
 
-public class Client {
-    public static int port = 54321;
+public class Client extends UnicastRemoteObject implements IClient {
+    private static final long serialVersionUID = -1937155418084943936L;
+
+    private static volatile int moves = 10;
+    private static volatile int currentMove = 0;
+    private static volatile IGame game;
+    private static volatile int id;
+    private static volatile boolean dropped = false;
+    private static volatile boolean gameOver = false;
+
+    public Client() throws RemoteException {
+
+    }
+
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.out.println("Use: java Client <server>");
+            System.out.println("Usage: java Client <server>");
+            System.exit(1);
+        }
+
+        String client = String.format("rmi://%s:%s/gameclient", "localhost", Constants.PORT.value);
+        String server = String.format("rmi://%s:%s/game", args[0], Constants.PORT.value);
+
+        try {
+            LocateRegistry.createRegistry(Constants.PORT.value);
+            System.out.println("RMI registry created.");
+        } catch (RemoteException e) {
+            System.out.println("RMI registry already exists!");
+        }
+
+        try {
+            System.setProperty("java.rmi.server.hostname", "localhost");
+            System.out.println("Creating callback server");
+            Naming.rebind(client, new Client());
+            System.out.println("Callback server started");
+        } catch (Exception e) {
+            System.out.printf("Error starting callback server! %s", e.getMessage());
             System.exit(1);
         }
 
         try {
-            String server = String.format("rmi://%s:%s/game", args[0], port);
             System.out.println("Entering server");
-            IGame game = (IGame) Naming.lookup(server);
-            System.out.println("Entering game");
-            int id = game.register();
-            System.out.printf("Player ID: %d\n", id);
+            game = (IGame) Naming.lookup(server);
 
+            System.out.println("Entering game");
+            id = game.register();
+            if (id < 0) {
+                throw new Exception(String.format("%d", id));
+            }
+
+            System.out.printf("Player ID: %d\n", id);
         } catch (Exception e) {
             System.out.printf("Failed to start client: %s\n", e.getMessage());
+            System.exit(2);
         }
+
+        while (true) {
+            if (dropped) {
+                System.exit(2);
+            }
+            if (gameOver) {
+                System.exit(0);
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void play() throws RemoteException {
+        System.out.println("Game started");
+        while (++currentMove < moves) {
+            try {
+                if(dropped) {
+                    System.out.println("Dropped from server! Too bad =(");
+                    return;
+                }
+                int played = game.play(id);
+                System.out.printf("Played: %d. Move %d of %d\n", played, currentMove, moves);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Game over! Congrats!");
+        gameOver = true;
+    }
+
+    public void drop() throws RemoteException {
+        dropped = true;
     }
 }

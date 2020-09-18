@@ -3,25 +3,44 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 
 public class Server {
-    public static int port = 54321;
     public static String serverHost = "localhost";
     public static void main (String[] args) {
+        if(args.length < 1) {
+            help();
+        }
+        int maxPlayers = Integer.parseInt(args[0]);
+
         try {
-            LocateRegistry.createRegistry(port);
+            LocateRegistry.createRegistry(Constants.PORT.value);
             System.out.println("RMI registry created.");
         } catch (RemoteException e) {
             System.out.println("RMI registry already exists!");
         }
 
         try {
-            String server = String.format("rmi://%s:%s/game", serverHost, port);
-            Game game = new Game();
+            String server = String.format("rmi://%s:%s/game", serverHost, Constants.PORT.value);
+            Game game = new Game(maxPlayers);
             System.setProperty("java.rmi.server.hostname", "localhost");
             Naming.rebind(server, game);
             System.out.println("Server started");
+
+            while(game.players() < maxPlayers) {
+                Thread.sleep(500);
+            }
+            
+            new Thread(() -> {
+                game.cutucador();
+            }).start();
+
+            game.start();
         } catch (Exception e) {
             System.out.printf("Error starting server! %s", e.getMessage());
             System.exit(1);
         }
+    }
+
+    public static void help() {
+        System.out.println("Usage: java Server <max_players>");
+        System.exit(1);
     }
 }
