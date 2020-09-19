@@ -41,7 +41,17 @@ public class Game extends UnicastRemoteObject implements IGame {
     public int play(int id) throws RemoteException {
         Player p = this.players.stream().filter(pl -> pl.getId() == id).collect(Collectors.toList()).get(0);
         System.out.printf("Move from player %d\n", p.getId());
+
         Random rand = new Random();
+
+        int stopPlayer = rand.nextInt(100);
+        if(stopPlayer == 1){
+            p.stop();
+            System.out.printf("Player %d dropped\n", p.getId());
+            this.players.forEach(pl -> System.out.printf("Player %d, status %s\n", pl.getId(), pl.getStatus()));
+            return 0;
+        }
+
         int ms = rand.nextInt(1001) + 500;
         try {
             Thread.sleep(ms);
@@ -74,8 +84,10 @@ public class Game extends UnicastRemoteObject implements IGame {
 
     public void cutucador() {
         while (true) {
-            List<Player> players = this.players.stream().filter(p -> p.getStatus() != PlayerStatus.PLAYING)
+            List<Player> players = this.players.stream().filter(p -> p.getStatus() == PlayerStatus.PLAYING)
                     .collect(Collectors.toList());
+            
+
             players.forEach(p -> {
                 if (System.currentTimeMillis() - p.getLastPooledTime() >= 3000) {
                     try {
