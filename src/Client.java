@@ -23,7 +23,7 @@ public class Client extends UnicastRemoteObject implements IClient {
             System.exit(1);
         }
         int port = Constants.PORT.value;
-        if(args.length > 1) {
+        if (args.length > 1) {
             port = Integer.parseInt(args[1]);
         }
 

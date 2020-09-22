@@ -1,5 +1,3 @@
 public enum PlayerStatus {
-    JOINED,
-    PLAYING,
-    FINISHED
+    JOINED, PLAYING, FINISHED
 }

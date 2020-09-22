@@ -83,7 +83,7 @@ public class Game extends UnicastRemoteObject implements IGame {
             Player p = this.getPlayerById(id);
             p.setFinished();
             return 0;
-        } catch(PlayerNotFoundException e) {
+        } catch (PlayerNotFoundException e) {
             System.err.println(e);
             return -1;
         }
@@ -97,15 +97,16 @@ public class Game extends UnicastRemoteObject implements IGame {
     public Player getPlayerById(int id) throws PlayerNotFoundException {
         try {
             return this.players.stream().filter(pl -> pl.getId() == id).collect(Collectors.toList()).get(0);
-        } catch(IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             throw new PlayerNotFoundException(String.format("Player %d não encontrado", id));
         }
     }
 
     public Player getPlayerByAddress(String address) throws PlayerNotFoundException {
         try {
-            return this.players.stream().filter(pl -> pl.getAddress().equals(address)).collect(Collectors.toList()).get(0);
-        } catch(IndexOutOfBoundsException e) {
+            return this.players.stream().filter(pl -> pl.getAddress().equals(address)).collect(Collectors.toList())
+                    .get(0);
+        } catch (IndexOutOfBoundsException e) {
             throw new PlayerNotFoundException(String.format("Endereço %s não utilizado", address));
         }
     }
@@ -124,7 +125,6 @@ public class Game extends UnicastRemoteObject implements IGame {
         while (true) {
             List<Player> players = this.players.stream().filter(p -> p.getStatus() == PlayerStatus.PLAYING)
                     .collect(Collectors.toList());
-            
 
             players.forEach(p -> {
                 if (System.currentTimeMillis() - p.getLastPooledTime() >= 3000) {

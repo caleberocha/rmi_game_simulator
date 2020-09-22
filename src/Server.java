@@ -4,8 +4,9 @@ import java.rmi.registry.LocateRegistry;
 
 public class Server {
     public static String serverHost = "localhost";
-    public static void main (String[] args) {
-        if(args.length < 1) {
+
+    public static void main(String[] args) {
+        if (args.length < 1) {
             help();
         }
         int maxPlayers = Integer.parseInt(args[0]);
@@ -24,10 +25,10 @@ public class Server {
             Naming.rebind(server, game);
             System.out.println("Server started");
 
-            while(game.getPlayersCount() < maxPlayers) {
+            while (game.getPlayersCount() < maxPlayers) {
                 Thread.sleep(500);
             }
-            
+
             new Thread(() -> {
                 game.cutucador();
             }).start();
