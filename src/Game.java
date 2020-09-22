@@ -32,7 +32,7 @@ public class Game extends UnicastRemoteObject implements IGame {
                 Player p = this.getPlayerByAddress(addr);
                 p.getId();
                 System.out.printf("Address %s already in use\n", addr);
-                return -1;
+                return -2;
             } catch (PlayerNotFoundException e) {
                 Player p = new Player(++this.nextId, address, port);
                 this.players.add(p);
@@ -41,7 +41,7 @@ public class Game extends UnicastRemoteObject implements IGame {
             }
         } catch (ServerNotActiveException e) {
             System.out.println("Client not active");
-            return -2;
+            return -3;
         }
     }
 
@@ -90,7 +90,11 @@ public class Game extends UnicastRemoteObject implements IGame {
     }
 
     public int getPlayersCount() {
-        return this.players.stream().filter(p -> p.getStatus() != PlayerStatus.FINISHED).collect(Collectors.counting())
+        return this.players.size();
+    }
+
+    public int getPlayersCount(PlayerStatus status) {
+        return this.players.stream().filter(p -> p.getStatus() == status).collect(Collectors.counting())
                 .intValue();
     }
 

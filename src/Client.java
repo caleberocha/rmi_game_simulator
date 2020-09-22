@@ -1,3 +1,4 @@
+import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -42,8 +43,8 @@ public class Client extends UnicastRemoteObject implements IClient {
             System.out.println("Creating callback server");
             Naming.rebind(client, new Client());
             System.out.println("Callback server started");
-        } catch (Exception e) {
-            System.out.printf("Error starting callback server! %s", e.getMessage());
+        } catch (RemoteException | MalformedURLException e) {
+            System.err.printf("Error starting callback server! %s", e.getMessage());
             System.exit(1);
         }
 
@@ -54,12 +55,12 @@ public class Client extends UnicastRemoteObject implements IClient {
             System.out.println("Entering game");
             id = game.register(port);
             if (id < 0) {
-                throw new Exception(String.format("%d", id));
+                throw new GameStartFailedException(id);
             }
 
             System.out.printf("Player ID: %d\n", id);
         } catch (Exception e) {
-            System.out.printf("Failed to start client: %s\n", e.getMessage());
+            System.err.printf("Failed to start client. %s: %s\n", e.getClass().getName(), e.getMessage());
             System.exit(2);
         }
 
