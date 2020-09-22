@@ -26,7 +26,10 @@ public class Server {
             System.out.println("Server started");
 
             while (game.getPlayersCount() < maxPlayers) {
-                Thread.sleep(500);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                }
             }
 
             new Thread(() -> {
@@ -34,6 +37,17 @@ public class Server {
             }).start();
 
             game.start();
+
+            while (true) {
+                if (game.getPlayersCount(PlayerStatus.FINISHED) == game.getPlayersCount()) {
+                    System.out.println("Game finished, stopping server");
+                    System.exit(0);
+                }
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                }
+            }
         } catch (Exception e) {
             System.out.printf("Error starting server! %s", e.getMessage());
             System.exit(1);
