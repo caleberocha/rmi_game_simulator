@@ -24,7 +24,7 @@ public class Server {
             Naming.rebind(server, game);
             System.out.println("Server started");
 
-            while(game.players() < maxPlayers) {
+            while(game.getPlayersCount() < maxPlayers) {
                 Thread.sleep(500);
             }
             

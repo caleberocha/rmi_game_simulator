@@ -20,17 +20,25 @@ public class Game extends UnicastRemoteObject implements IGame {
     private static final long serialVersionUID = 1287910455759693773L;
 
     @Override
-    public int register() throws RemoteException {
-        if (this.nextId >= this.maxPlayers) {
+    public int register(int port) throws RemoteException {
+        if (this.getPlayersCount() >= this.maxPlayers) {
             return -1;
         }
 
         try {
             String address = getClientHost();
-            Player p = new Player(++this.nextId, address);
-            this.players.add(p);
-            System.out.printf("Player added: %s\n", p);
-            return p.getId();
+            try {
+                String addr = String.format("%s:%s", address, port);
+                Player p = this.getPlayerByAddress(addr);
+                p.getId();
+                System.out.printf("Address %s already in use\n", addr);
+                return -1;
+            } catch (PlayerNotFoundException e) {
+                Player p = new Player(++this.nextId, address, port);
+                this.players.add(p);
+                System.out.printf("Player added: %s\n", p);
+                return p.getId();
+            }
         } catch (ServerNotActiveException e) {
             System.out.println("Client not active");
             return -2;
@@ -81,7 +89,7 @@ public class Game extends UnicastRemoteObject implements IGame {
         }
     }
 
-    public int players() {
+    public int getPlayersCount() {
         return this.players.stream().filter(p -> p.getStatus() != PlayerStatus.FINISHED).collect(Collectors.counting())
                 .intValue();
     }
@@ -91,6 +99,14 @@ public class Game extends UnicastRemoteObject implements IGame {
             return this.players.stream().filter(pl -> pl.getId() == id).collect(Collectors.toList()).get(0);
         } catch(IndexOutOfBoundsException e) {
             throw new PlayerNotFoundException(String.format("Player %d não encontrado", id));
+        }
+    }
+
+    public Player getPlayerByAddress(String address) throws PlayerNotFoundException {
+        try {
+            return this.players.stream().filter(pl -> pl.getAddress().equals(address)).collect(Collectors.toList()).get(0);
+        } catch(IndexOutOfBoundsException e) {
+            throw new PlayerNotFoundException(String.format("Endereço %s não utilizado", address));
         }
     }
 

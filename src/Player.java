@@ -7,11 +7,13 @@ public class Player implements IPlayer {
     private int id;
     private PlayerStatus status;
     private String address;
+    private int port;
     private long lastPooledTime;
 
-    public Player(int id, String address) {
+    public Player(int id, String address, int port) {
         this.id = id;
         this.address = address;
+        this.port = port;
         this.status = PlayerStatus.JOINED;
         this.lastPooledTime = System.currentTimeMillis();
     }
@@ -20,12 +22,16 @@ public class Player implements IPlayer {
         return this.id;
     }
 
+    public String getAddress() {
+        return String.format("%s:%d", this.address, this.port);
+    }
+
     @Override
     public void start() throws RemoteException {
         try {
-            System.out.printf("Starting player %s, address %s\n", this.id, this.address);
+            System.out.printf("Starting player %s, address %s:%s\n", this.id, this.address, this.port);
             IClient c = (IClient) Naming
-                    .lookup(String.format("rmi://%s:%s/gameclient", this.address, Constants.PORT.value));
+                    .lookup(String.format("rmi://%s:%s/gameclient", this.address, this.port));
             c.play();
             this.status = PlayerStatus.PLAYING;
             this.lastPooledTime = System.currentTimeMillis();
@@ -38,7 +44,7 @@ public class Player implements IPlayer {
     public void stop() throws RemoteException {
         try {
             IClient c = (IClient) Naming
-                    .lookup(String.format("rmi://%s:%s/gameclient", this.address, Constants.PORT.value));
+                    .lookup(String.format("rmi://%s:%s/gameclient", this.address, this.port));
             c.drop();
             this.setFinished();
         } catch (MalformedURLException | NotBoundException e) {
@@ -50,7 +56,7 @@ public class Player implements IPlayer {
     public void cutuca() throws RemoteException {
         try {
             IClient c = (IClient) Naming
-                    .lookup(String.format("rmi://%s:%s/gameclient", this.address, Constants.PORT.value));
+                    .lookup(String.format("rmi://%s:%s/gameclient", this.address, this.port));
             c.isAlive();
             this.lastPooledTime = System.currentTimeMillis();
         } catch (MalformedURLException | NotBoundException e) {
@@ -68,12 +74,12 @@ public class Player implements IPlayer {
 
     public void setFinished() {
         this.status = PlayerStatus.FINISHED;
-        System.out.printf("Player %s finished playing", this.id);
+        System.out.printf("Player %s finished playing\n", this.id);
     }
 
     @Override
     public String toString() {
-        return String.format("Player %d is %s", this.getId(), this.status);
+        return String.format("Player %d (%s:%d) is %s", this.getId(), this.address, this.port, this.status);
     }
 
 }

@@ -22,12 +22,16 @@ public class Client extends UnicastRemoteObject implements IClient {
             System.out.println("Usage: java Client <server>");
             System.exit(1);
         }
+        int port = Constants.PORT.value;
+        if(args.length > 1) {
+            port = Integer.parseInt(args[1]);
+        }
 
-        String client = String.format("rmi://%s:%s/gameclient", "localhost", Constants.PORT.value);
+        String client = String.format("rmi://%s:%s/gameclient", "localhost", port);
         String server = String.format("rmi://%s:%s/game", args[0], Constants.PORT.value);
 
         try {
-            LocateRegistry.createRegistry(Constants.PORT.value);
+            LocateRegistry.createRegistry(port);
             System.out.println("RMI registry created.");
         } catch (RemoteException e) {
             System.out.println("RMI registry already exists!");
@@ -48,7 +52,7 @@ public class Client extends UnicastRemoteObject implements IClient {
             game = (IGame) Naming.lookup(server);
 
             System.out.println("Entering game");
-            id = game.register();
+            id = game.register(port);
             if (id < 0) {
                 throw new Exception(String.format("%d", id));
             }
