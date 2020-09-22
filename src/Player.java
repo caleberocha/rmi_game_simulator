@@ -23,6 +23,7 @@ public class Player implements IPlayer {
     @Override
     public void start() throws RemoteException {
         try {
+            System.out.printf("Starting player %s, address %s\n", this.id, this.address);
             IClient c = (IClient) Naming
                     .lookup(String.format("rmi://%s:%s/gameclient", this.address, Constants.PORT.value));
             c.play();
@@ -43,7 +44,6 @@ public class Player implements IPlayer {
         } catch (MalformedURLException | NotBoundException e) {
             e.printStackTrace();
         }
-        
     }
 
     @Override
@@ -51,6 +51,7 @@ public class Player implements IPlayer {
         try {
             IClient c = (IClient) Naming
                     .lookup(String.format("rmi://%s:%s/gameclient", this.address, Constants.PORT.value));
+            c.isAlive();
             this.lastPooledTime = System.currentTimeMillis();
         } catch (MalformedURLException | NotBoundException e) {
             e.printStackTrace();
@@ -67,11 +68,12 @@ public class Player implements IPlayer {
 
     public void setFinished() {
         this.status = PlayerStatus.FINISHED;
+        System.out.printf("Player %s finished playing", this.id);
     }
 
     @Override
     public String toString() {
-        return String.format("Player %d", this.getId());
+        return String.format("Player %d is %s", this.getId(), this.status);
     }
 
 }

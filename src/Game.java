@@ -39,13 +39,21 @@ public class Game extends UnicastRemoteObject implements IGame {
 
     @Override
     public int play(int id) throws RemoteException {
-        Player p = this.players.stream().filter(pl -> pl.getId() == id).collect(Collectors.toList()).get(0);
+        Player p;
+
+        try {
+            p = this.getPlayerById(id);
+        } catch (PlayerNotFoundException e) {
+            System.err.println(e);
+            return 0;
+        }
+
         System.out.printf("Move from player %d\n", p.getId());
 
         Random rand = new Random();
 
         int stopPlayer = rand.nextInt(100);
-        if(stopPlayer == 1){
+        if (stopPlayer == 1) {
             p.stop();
             System.out.printf("Player %d dropped\n", p.getId());
             this.players.forEach(pl -> System.out.printf("Player %d, status %s\n", pl.getId(), pl.getStatus()));
@@ -63,13 +71,27 @@ public class Game extends UnicastRemoteObject implements IGame {
 
     @Override
     public int stop(int id) throws RemoteException {
-        // TODO Auto-generated method stub
-        return 0;
+        try {
+            Player p = this.getPlayerById(id);
+            p.setFinished();
+            return 0;
+        } catch(PlayerNotFoundException e) {
+            System.err.println(e);
+            return -1;
+        }
     }
 
     public int players() {
         return this.players.stream().filter(p -> p.getStatus() != PlayerStatus.FINISHED).collect(Collectors.counting())
                 .intValue();
+    }
+
+    public Player getPlayerById(int id) throws PlayerNotFoundException {
+        try {
+            return this.players.stream().filter(pl -> pl.getId() == id).collect(Collectors.toList()).get(0);
+        } catch(IndexOutOfBoundsException e) {
+            throw new PlayerNotFoundException(String.format("Player %d não encontrado", id));
+        }
     }
 
     public void start() {
@@ -100,7 +122,7 @@ public class Game extends UnicastRemoteObject implements IGame {
                 }
             });
             try {
-                Thread.sleep(100);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
             }
         }

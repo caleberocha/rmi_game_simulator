@@ -76,23 +76,34 @@ public class Client extends UnicastRemoteObject implements IClient {
 
     public void play() throws RemoteException {
         System.out.println("Game started");
-        while (++currentMove < moves) {
-            try {
-                if(dropped) {
-                    System.out.println("Dropped from server! Too bad =(");
-                    return;
+        new Thread(() -> {
+            while (++currentMove <= moves) {
+                try {
+                    if (dropped) {
+                        System.out.println("Dropped from server! Too bad =(");
+                        return;
+                    }
+                    int played = game.play(id);
+                    System.out.printf("Played: %d. Move %d of %d\n", played, currentMove, moves);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
                 }
-                int played = game.play(id);
-                System.out.printf("Played: %d. Move %d of %d\n", played, currentMove, moves);
+            }
+            System.out.println("Game over! Congrats!");
+            try {
+                game.stop(id);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
-        }
-        System.out.println("Game over! Congrats!");
-        gameOver = true;
+            gameOver = true;
+        }).start();
     }
 
     public void drop() throws RemoteException {
         dropped = true;
+    }
+
+    public boolean isAlive() throws RemoteException {
+        return true;
     }
 }
