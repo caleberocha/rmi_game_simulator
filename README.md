@@ -8,7 +8,7 @@ Esta aplicação foi desenvolvida utilizando Java 11 (AdoptOpenJDK). Instruçõe
 - Execute estes comandos:
   ```
   cd src
-  javac *.class
+  javac *.java
   ```
 - Para iniciar o servidor:
   ```
